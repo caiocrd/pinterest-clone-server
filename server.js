@@ -68,8 +68,13 @@ app.get("/api/pin/:user_id", function(req, res){
 
 //Delete Pin
 app.delete("/api/pin/:id", function(req, res){
-    Pin.deleteOne(req.params.id, function(err){
-        res.status(200).send("removido");
+    Pin.deleteOne({_id: req.params.id}, function(err){
+        if(err){
+            res.status(500).send(err);
+        }else{
+            res.status(200).send();
+        }
+        
     });
 });
 
