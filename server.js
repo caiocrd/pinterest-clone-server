@@ -21,6 +21,7 @@ app.use(session({
     resave: true,
     saveUninitialized: true,
 }));
+app.use(cors());
 
 //Schemas
 require('./model/User');
