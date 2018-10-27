@@ -13,6 +13,7 @@ mongoose.connect(process.env.MONGO_URI);
 
 
 app.use(parser.urlencoded({extended: false}));
+app.use(cors());
 
 //Schemas
 var UserShema = new Schema({login: String, password: String});
