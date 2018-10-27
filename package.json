@@ -1,0 +1,16 @@
+{
+  "name": "pinterest-clone-server",
+  "version": "1.0.0",
+  "description": "Server for small pinterest clone project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Caio Cesar, Gustavo Alves, Jose Rogerio",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.4",
+    "mongodb": "^3.1.8",
+    "mongoose": "^5.3.7"
+  }
+}
