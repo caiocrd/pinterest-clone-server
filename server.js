@@ -1,13 +1,14 @@
 
 require('dotenv').config();
 var express = require('express');
-var mongo = require('mongodb');
+
 var mongoose = require('mongoose');
 var parser = require('body-parser');
 var session = require('express-session');
 var passport = require('passport');
 var GitHubTokenStrategy = require('passport-github-token');
 var GoogleTokenStrategy = require('passport-google-token').Strategy;
+var { generateToken, sendToken } = require('./utils/tokenUtil');
 
 
 var Schema = mongoose.Schema;
@@ -17,13 +18,20 @@ var app = express();
 mongoose.connect(process.env.MONGO_URI);
 
 
-app.use(parser.urlencoded({extended: false}));
+app.use(parser.json());
+app.use(parser.urlencoded({ extended: false }));
 app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: true,
     saveUninitialized: true,
 }));
-app.use(cors());
+var corsOption = {
+    origin: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+    exposedHeaders: ['x-auth-token']
+};
+app.use(cors(corsOption));
 
 //Schemas
 require('./model/User');
@@ -103,11 +111,10 @@ passport.use(new GitHubTokenStrategy({
     passReqToCallback: true
 },
 function (accessToken, refreshToken, profile, done) {
-    console.log('TOKEN ' + accessToken);
     console.log('PROFILE ' + profile);
-    //User.upsertGoogleUser(accessToken, refreshToken, profile, function(err, user) {
-        return done(err, profile);
-    //});
+    User.upsertGoogleUser(accessToken, refreshToken, profile, function(err, user) {
+        return done(err, user);
+    });
 }));
 
 
@@ -116,10 +123,10 @@ passport.use(new GoogleTokenStrategy({
     clientSecret: process.env.GOOGLE_CLIENT_SECRET
 },
 function (accessToken, refreshToken, profile, done) {
-    console.log('euta');
-    //User.upsertGoogleUser(accessToken, refreshToken, profile, function(err, user) {
-        return done(err, profile);
-    //});
+    console.log('eita', profile);
+    User.upsertGoogleUser(accessToken, refreshToken, profile, function(err, user) {
+        return done(err, user);
+    });
 }));
 
 app.route('/auth/github')
@@ -134,10 +141,12 @@ app.route('/auth/github')
     res.status(200).send(JSON.stringify(req.user));
 });
 
-app.post('/auth/google', function(req, res, next) {
+/*app.get('/auth/google', function(req, res, next) {
     console.log('entrei aqui');
   passport.authenticate('google-token', function(err, user, info) {
-    console.log(err);  
+    console.log('erro ', err);  
+    console.log('user ', user);  
+    console.log('info ', info);  
     if (err) { return next(err); }
     if (!user) { return res.redirect('/login'); }
     req.logIn(user, function(err) {
@@ -145,7 +154,21 @@ app.post('/auth/google', function(req, res, next) {
       return res.redirect('/users/' + user.username);
     });
   })(req, res, next);
-});
+});*/
+
+
+app.route('/auth/google')
+    .get(passport.authenticate('google-token', {session: false}), function(req, res, next) {
+        console.log('usuario ', req.user);
+        if (!req.user) {
+            return res.send(401, 'User Not Authenticated');
+        }
+        req.auth = {
+            id: req.user.id
+        };
+
+        next();
+}, generateToken, sendToken);
 
 /*app.route('/auth/google')
     .post(passport.authenticate('google-token', {session: false}), function(req, res, next) {
