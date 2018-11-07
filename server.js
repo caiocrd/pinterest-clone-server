@@ -8,7 +8,7 @@ var session = require('express-session');
 var passport = require('passport');
 var GitHubTokenStrategy = require('passport-github-token');
 var GoogleTokenStrategy = require('passport-google-token').Strategy;
-var { generateToken, sendToken } = require('./utils/tokenUtil');
+var { generateToken, sendToken, validateToken } = require('./utils/tokenUtil');
 
 
 var Schema = mongoose.Schema;
@@ -50,9 +50,9 @@ app.get("/api/hello", function (req, res) {
  
 
 //Create Pin
-app.post("/api/pin", function (req, res) {
+app.post("/api/pin", validateToken, function (req, res) {
     var newPin = new Pin(JSON.parse(req.body.pin));
-    newPin.user_id = "5bd45fc5208c3cf3f12d00a0";
+    newPin.user_id = req.user;
     console.log(newPin);
     newPin.save(function(err, data){
         if(err){
@@ -111,7 +111,6 @@ passport.use(new GitHubTokenStrategy({
     passReqToCallback: true
 },
 function (accessToken, refreshToken, profile, done) {
-    console.log('PROFILE ' + profile);
     User.upsertGoogleUser(accessToken, refreshToken, profile, function(err, user) {
         return done(err, user);
     });
