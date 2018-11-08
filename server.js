@@ -77,7 +77,7 @@ app.get("/api/pin/:user_id", function(req, res){
 })
 
 //Delete Pin
-app.delete("/api/pin/:id", function(req, res){
+app.delete("/api/pin/:id", validateToken, function(req, res){
     Pin.deleteOne({_id: req.params.id}, function(err){
         if(err){
             res.status(500).send(err);

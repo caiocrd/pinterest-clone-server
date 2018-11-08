@@ -20,18 +20,14 @@ module.exports = {
   },
   validateToken: function(req, res, next){
       const bearerHeader = req.headers['authorization'];
-      console.log('header ', bearerHeader);
       if(typeof bearerHeader !== 'undefined'){
         //Split the token at the space
         const bearer = bearerHeader.split(' ');
-        console.log('bear ', bearer);
         const bearerToken = bearer[1];
-        console.log('token ', bearerToken);
         const user = jwt.verify(bearerToken, 'my-secret', (err, user) => {
             if(err){
                 res.sendStatus(403);
             }else{
-                console.log('user do token ' + user);
                 req.user = user.id;
                 next();
             }
